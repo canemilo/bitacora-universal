@@ -234,6 +234,9 @@ bitacora-universal
 ## Fields
 - POST /api/v1/templates/{id}/fields
 
+![Code Style](https://img.shields.io/badge/code%20style-clean-blue)
+![Code Quality](https://img.shields.io/badge/code%20quality-good-green)
+![Security](https://img.shields.io/badge/security-JWT-orange)
 # Objetivo del proyecto
 
 Este proyecto empezó como una forma de experimentar con
