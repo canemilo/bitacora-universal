@@ -1,6 +1,6 @@
 # Bitácora 
 
-Aplicación tipo “Excel personal” donde cada usuario puede crear **Plantillas** (categorías como “Coches”, “Ciudades”, “Restaurantes”), definir **Columnas** (campos) y añadir **Filas** (registros) de forma indefinida.
+Aplicación tipo “CUaderno personal” donde cada usuario puede crear **Plantillas** (categorías como “Coches”, “Ciudades”, “Restaurantes”), definir **Columnas** (campos) y añadir **Filas** (registros) de forma indefinida.
 
 Cada fila puede tener **Logs** (historial) con **puntuación decimal 0–10**, comentario y fecha opcional.
 
