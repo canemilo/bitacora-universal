@@ -207,5 +207,3 @@ About me
 Hi, I’m Daniel Garrido – a student of Multiplatform Application Development (DAM) with a passion for full‑stack development, software architecture, and cybersecurity.
 
 I started Bitácora to scratch my own itch: I wanted a tool that lets me build simple databases without the overhead of a full spreadsheet or a complex SaaS. It’s also been a fantastic way to put into practice what I’ve learned about Spring Security, JWT, React hooks, and modern frontend tooling.
-
-If you have ideas, find a bug, or just want to chat, feel free to open an issue or reach out.
