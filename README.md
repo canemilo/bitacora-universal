@@ -11,8 +11,6 @@
 
 #  Bitácora 
 
-# Bitácora
-
 Bitácora is a full-stack application that allows users to create **dynamic data collections** to organize and manage information.
 
 Users can define **custom data structures** by creating fields and storing records as rows. This makes it possible to build flexible personal databases for many use cases such as inventories, logs, directories, or custom trackers.
@@ -21,7 +19,7 @@ The goal of the project is to provide a **lightweight and customizable alternati
 
 ---
 
-# ✨ Features
+# Features
 
 - Create dynamic collections
 - Define custom fields
@@ -33,7 +31,7 @@ The goal of the project is to provide a **lightweight and customizable alternati
 
 ---
 
-# 🧠 Concept
+# Concept
 
 Bitácora works like a **personal database builder**.
 
@@ -58,7 +56,7 @@ Rows:
 
 ---
 
-# 🏗 Architecture
+# Architecture
 
 The project follows a **full-stack architecture**:
 
