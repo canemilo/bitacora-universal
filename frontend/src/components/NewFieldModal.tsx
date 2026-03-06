@@ -44,29 +44,9 @@ export default function NewFieldModal(props: {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [internalEditedManually, setInternalEditedManually] = useState(false);
-
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const mode = props.mode ?? "create";
   const isEdit = mode === "edit";
-
-  async function deleteField() {
-    if (!isEdit || !props.fieldToEdit) return;
-
-    setError(null);
-    setDeleting(true);
-
-    try {
-      await api.del(
-          `/api/v1/templates/${props.templateId}/fields/${props.fieldToEdit.id}`
-      );
-
-      props.onClose();
-      props.onCreated();
-    } catch (e: any) {
-      setError(e?.message ?? "No se pudo borrar el atributo");
-    } finally {
-      setDeleting(false);
-    }
-  }
 
   useEffect(() => {
     if (!props.open) {
@@ -76,6 +56,7 @@ export default function NewFieldModal(props: {
       setRequired(false);
       setOptionsText("");
       setSaving(false);
+      setDeleting(false);
       setError(null);
       setInternalEditedManually(false);
     }
@@ -100,6 +81,7 @@ export default function NewFieldModal(props: {
         }
       });
       setSaving(false);
+      setDeleting(false);
       setError(null);
       setInternalEditedManually(true);
       return;
@@ -112,6 +94,7 @@ export default function NewFieldModal(props: {
       setRequired(false);
       setOptionsText("");
       setSaving(false);
+      setDeleting(false);
       setError(null);
       setInternalEditedManually(false);
     }
@@ -168,7 +151,6 @@ export default function NewFieldModal(props: {
         setError("Para un atributo de tipo SELECT debes indicar al menos una opción.");
         return;
       }
-
       optionsJson = JSON.stringify(parsedOptions);
     }
 
@@ -210,124 +192,160 @@ export default function NewFieldModal(props: {
     }
   }
 
+  async function deleteField() {
+    if (!isEdit || !props.fieldToEdit) return;
+
+    setError(null);
+    setDeleting(true);
+
+    try {
+      await api.del(
+          `/api/v1/templates/${props.templateId}/fields/${props.fieldToEdit.id}`
+      );
+      props.onClose();
+      props.onCreated();
+    } catch (e: any) {
+      setError(e?.message ?? "No se pudo borrar el atributo");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
             className="absolute inset-0 bg-black/70 backdrop-blur-md"
             onClick={() => {
-              if (!saving) props.onClose();
+              if (!saving && !deleting) props.onClose();
             }}
         />
 
-        <div className="relative z-10 w-full max-w-xl">
+        <div className="relative z-10 w-full max-w-2xl">
           <Card className="rounded-[32px] border border-white/15 bg-white/[0.08] p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
             <div className="border-b border-white/10 px-6 py-5">
-              <div className="text-xs uppercase tracking-[0.18em] text-white/40">
+              <div className="text-xs uppercase tracking-[0.18em] text-white/35">
                 {isEdit ? "Editar atributo" : "Nuevo atributo"}
               </div>
+
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-                {isEdit
-                    ? "Modifica el atributo de la colección"
-                    : "Añade un nuevo atributo a la colección"}
+                {isEdit ? "Configurar atributo" : "Crear atributo"}
               </h2>
-              <p className="mt-2 text-sm leading-6 text-white/55">
+
+              <p className="mt-2 text-sm leading-6 text-white/50">
                 {isEdit
-                    ? "Actualiza el nombre, el tipo o las reglas de este atributo."
+                    ? "Modifica cómo se mostrará y validará este atributo dentro de la colección."
                     : "Define un nuevo campo para guardar información dentro de esta colección."}
               </p>
             </div>
 
-            <div className="space-y-5 px-6 py-6">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-white/75">
-                  Nombre visible
-                </label>
-                <input
-                    value={visibleName}
-                    onChange={(e) => setVisibleName(e.target.value)}
-                    placeholder="Ej: Caballos CV"
-                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
-                />
-                <p className="mt-2 text-xs text-white/40">
-                  Es el nombre que verá el usuario dentro de la colección.
-                </p>
-              </div>
+            <div className="space-y-6 px-6 py-6">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="mb-4 text-xs uppercase tracking-[0.18em] text-white/35">
+                  Identidad
+                </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-white/75">
-                  Nombre interno
-                </label>
-                <input
-                    value={internalName}
-                    onChange={(e) => {
-                      setInternalEditedManually(true);
-                      setInternalName(normalizeInternalName(e.target.value));
-                    }}
-                    placeholder="Ej: caballos_cv"
-                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
-                />
-                <p className="mt-2 text-xs text-white/40">
-                  Se usa para identificar el atributo en el sistema. Usa minúsculas,
-                  sin espacios y sin tildes.
-                </p>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-white/75">
-                  Tipo de dato
-                </label>
-                <select
-                    value={dataType}
-                    onChange={(e) => setDataType(e.target.value as FieldType)}
-                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl focus:border-white/25"
-                >
-                  <option value="TEXT">Texto</option>
-                  <option value="NUMBER">Número</option>
-                  <option value="BOOLEAN">Sí / No</option>
-                  <option value="DATE">Fecha</option>
-                  <option value="SELECT">Lista de opciones</option>
-                </select>
-              </div>
-
-              {dataType === "SELECT" && (
+                <div className="space-y-5">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-white/75">
-                      Opciones
+                      Nombre visible
                     </label>
                     <input
-                        value={optionsText}
-                        onChange={(e) => setOptionsText(e.target.value)}
-                        placeholder="Ej: Rojo, Negro, Azul"
+                        value={visibleName}
+                        onChange={(e) => setVisibleName(e.target.value)}
+                        placeholder="Ej: Caballos CV"
                         className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
                     />
                     <p className="mt-2 text-xs text-white/40">
-                      Escribe las opciones separadas por comas.
+                      Es el nombre que verá el usuario dentro de la colección.
                     </p>
-
-                    {parsedOptions.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {parsedOptions.map((option) => (
-                              <span
-                                  key={option}
-                                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70"
-                              >
-                        {option}
-                      </span>
-                          ))}
-                        </div>
-                    )}
                   </div>
-              )}
 
-              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <input
-                    type="checkbox"
-                    checked={required}
-                    onChange={(e) => setRequired(e.target.checked)}
-                    className="h-4 w-4 rounded border-white/20 bg-black/20"
-                />
-                <span className="text-sm text-white/75">Obligatorio</span>
-              </label>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-white/75">
+                      Nombre interno
+                    </label>
+                    <input
+                        value={internalName}
+                        onChange={(e) => {
+                          setInternalEditedManually(true);
+                          setInternalName(normalizeInternalName(e.target.value));
+                        }}
+                        placeholder="Ej: caballos_cv"
+                        className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
+                    />
+                    <p className="mt-2 text-xs text-white/40">
+                      Se usa internamente para identificar el atributo. Usa minúsculas, sin espacios y sin tildes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="mb-4 text-xs uppercase tracking-[0.18em] text-white/35">
+                  Configuración
+                </div>
+
+                <div className="space-y-5">
+                  <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-white/75">
+                        Tipo de dato
+                      </label>
+                      <select
+                          value={dataType}
+                          onChange={(e) => setDataType(e.target.value as FieldType)}
+                          className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl focus:border-white/25"
+                      >
+                        <option value="TEXT">Texto</option>
+                        <option value="NUMBER">Número</option>
+                        <option value="BOOLEAN">Sí / No</option>
+                        <option value="DATE">Fecha</option>
+                        <option value="SELECT">Lista de opciones</option>
+                      </select>
+                    </div>
+
+                    <label className="flex h-[50px] items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4">
+                      <input
+                          type="checkbox"
+                          checked={required}
+                          onChange={(e) => setRequired(e.target.checked)}
+                          className="h-4 w-4 rounded border-white/20 bg-black/20"
+                      />
+                      <span className="text-sm text-white/75">Obligatorio</span>
+                    </label>
+                  </div>
+
+                  {dataType === "SELECT" && (
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-white/75">
+                          Opciones
+                        </label>
+                        <input
+                            value={optionsText}
+                            onChange={(e) => setOptionsText(e.target.value)}
+                            placeholder="Ej: Rojo, Negro, Azul"
+                            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
+                        />
+                        <p className="mt-2 text-xs text-white/40">
+                          Escribe las opciones separadas por comas.
+                        </p>
+
+                        {parsedOptions.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {parsedOptions.map((option) => (
+                                  <span
+                                      key={option}
+                                      className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70"
+                                  >
+                            {option}
+                          </span>
+                              ))}
+                            </div>
+                        )}
+                      </div>
+                  )}
+                </div>
+              </div>
 
               {error && (
                   <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
@@ -341,14 +359,61 @@ export default function NewFieldModal(props: {
                 {isEdit && (
                     <Button
                         variant="ghost"
-                        onClick={deleteField}
+                        onClick={() => setConfirmDelete(true)}
                         disabled={saving || deleting}
                     >
-                      {deleting ? "Borrando..." : "Borrar atributo"}
+                      Borrar atributo
                     </Button>
                 )}
               </div>
 
+              {confirmDelete && (
+                  <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/70 backdrop-blur-md"
+                        onClick={() => {
+                          if (!deleting) setConfirmDelete(false);
+                        }}
+                    />
+
+                    <div className="relative z-10 w-full max-w-md">
+                      <Card className="rounded-[28px] border border-white/15 bg-white/[0.08] p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+                        <div className="border-b border-white/10 px-6 py-5">
+                          <div className="text-xs uppercase tracking-[0.18em] text-white/35">
+                            Confirmar borrado
+                          </div>
+                          <h2 className="mt-2 text-xl font-semibold text-white">
+                            Eliminar atributo
+                          </h2>
+                          <p className="mt-2 text-sm text-white/55">
+                            Este atributo dejará de mostrarse en la colección.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 px-6 py-5">
+                          <Button
+                              variant="ghost"
+                              onClick={() => setConfirmDelete(false)}
+                              disabled={deleting}
+                          >
+                            Cancelar
+                          </Button>
+
+                          <Button
+                              variant="secondary"
+                              onClick={async () => {
+                                await deleteField();
+                                setConfirmDelete(false);
+                              }}
+                              disabled={deleting}
+                          >
+                            {deleting ? "Eliminando..." : "Eliminar"}
+                          </Button>
+                        </div>
+                      </Card>
+                    </div>
+                  </div>
+              )}
               <div className="flex items-center gap-3">
                 <Button
                     variant="ghost"
