@@ -195,7 +195,7 @@ export default function App() {
 
                     <div className="flex items-center gap-2">
                         <Button variant="secondary" onClick={() => setNewOpen(true)}>
-                            Crear plantilla
+                            Crear colección
                         </Button>
 
                         <Button variant="ghost" onClick={load} disabled={loading}>
@@ -224,13 +224,14 @@ export default function App() {
                                     </div>
 
                                     <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">
-                                        Mis plantillas
+                                        Mis colecciones
                                     </h1>
 
                                     <p className="mt-4 max-w-2xl text-sm leading-7 text-white/55 md:text-base">
-                                        Crea y organiza plantillas dinámicas de forma simple, limpia y visual.
-                                        Añade columnas personalizadas y registra filas como si fuera una base
-                                        de datos ligera con diseño premium.
+                                        Olvídate de las hojas de cálculo rígidas. Con Bitácora, tú decides cómo organizar tu información:
+                                        crea colecciones a medida, añade los campos que necesites —texto, números, fechas…— y
+                                        rellena registros como si fuera una tabla. Además, puedes dejar notas y valoraciones
+                                        en cada entrada para llevar un seguimiento detallado.
                                     </p>
                                 </div>
 
@@ -261,17 +262,17 @@ export default function App() {
                                         </div>
 
                                         <h2 className="text-2xl font-semibold tracking-tight">
-                                            No hay plantillas todavía
+                                            No hay colecciones todavía
                                         </h2>
 
                                         <p className="max-w-xl text-sm leading-7 text-white/55">
-                                            Crea tu primera plantilla y empieza a construir una bitácora con
+                                            Crea tu primera colección y empieza a construir una bitácora con
                                             campos y registros personalizados.
                                         </p>
 
                                         <div className="pt-2">
                                             <Button variant="secondary" onClick={() => setNewOpen(true)}>
-                                                Crear plantilla
+                                                Crear colección
                                             </Button>
                                         </div>
                                     </div>
@@ -353,12 +354,12 @@ export default function App() {
                                 </div>
 
                                 <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-                                    Buscar plantillas
+                                    Buscar colección
                                 </h2>
 
                                 <p className="mt-2 text-sm leading-7 text-white/55">
                                     Filtra por nombre, descripción o id para encontrar rápidamente una
-                                    plantilla concreta.
+                                    colección.
                                 </p>
 
                                 <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 backdrop-blur-xl">
@@ -383,7 +384,7 @@ export default function App() {
 
                                 <div className="mt-4 flex flex-col gap-2">
                                     <Button variant="secondary" onClick={() => setNewOpen(true)}>
-                                        Crear plantilla
+                                        Crear colección
                                     </Button>
 
                                     <Button variant="ghost" onClick={load} disabled={loading}>

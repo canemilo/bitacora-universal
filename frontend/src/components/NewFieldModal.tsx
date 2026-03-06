@@ -1,8 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { Button, Card } from "./ui";
 
 type FieldType = "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "SELECT";
+
+function normalizeInternalName(value: string): string {
+  return value
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s_]/g, "")
+      .replace(/\s+/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "");
+}
 
 export default function NewFieldModal(props: {
   open: boolean;
@@ -11,65 +23,89 @@ export default function NewFieldModal(props: {
   onClose: () => void;
   onCreated: () => void;
 }) {
-  const [fieldKey, setFieldKey] = useState("");
-  const [label, setLabel] = useState("");
+  const [internalName, setInternalName] = useState("");
+  const [visibleName, setVisibleName] = useState("");
   const [dataType, setDataType] = useState<FieldType>("TEXT");
   const [required, setRequired] = useState(false);
   const [optionsText, setOptionsText] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [internalEditedManually, setInternalEditedManually] = useState(false);
 
   useEffect(() => {
     if (!props.open) {
-      setFieldKey("");
-      setLabel("");
+      setInternalName("");
+      setVisibleName("");
       setDataType("TEXT");
       setRequired(false);
       setOptionsText("");
       setSaving(false);
       setError(null);
+      setInternalEditedManually(false);
     }
   }, [props.open]);
 
+  useEffect(() => {
+    if (!internalEditedManually) {
+      setInternalName(normalizeInternalName(visibleName));
+    }
+  }, [visibleName, internalEditedManually]);
+
+  const parsedOptions = useMemo(() => {
+    return optionsText
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+  }, [optionsText]);
+
   if (!props.open) return null;
+
+  function validateInternalName(value: string): string | null {
+    if (!value) {
+      return "El nombre interno es obligatorio.";
+    }
+
+    if (!/^[a-z0-9_]+$/.test(value)) {
+      return "El nombre interno solo puede contener letras minúsculas, números y guiones bajos.";
+    }
+
+    return null;
+  }
 
   async function submit() {
     setError(null);
 
-    const cleanFieldKey = fieldKey.trim();
-    const cleanLabel = label.trim();
+    const cleanInternalName = normalizeInternalName(internalName);
+    const cleanVisibleName = visibleName.trim();
 
-    if (!cleanFieldKey) {
-      setError("fieldKey es obligatorio.");
+    if (!cleanVisibleName) {
+      setError("El nombre visible es obligatorio.");
       return;
     }
 
-    if (!cleanLabel) {
-      setError("label es obligatorio.");
+    const internalNameError = validateInternalName(cleanInternalName);
+    if (internalNameError) {
+      setError(internalNameError);
       return;
     }
 
     let optionsJson: string | null = null;
 
     if (dataType === "SELECT") {
-      const options = optionsText
-        .split(",")
-        .map((v) => v.trim())
-        .filter(Boolean);
-
-      if (options.length === 0) {
-        setError("Para SELECT debes indicar al menos una opción.");
+      if (parsedOptions.length === 0) {
+        setError("Para un atributo de tipo SELECT debes indicar al menos una opción.");
         return;
       }
 
-      optionsJson = JSON.stringify(options);
+      optionsJson = JSON.stringify(parsedOptions);
     }
 
     setSaving(true);
+
     try {
       await api.post(`/api/v1/templates/${props.templateId}/fields`, {
-        fieldKey: cleanFieldKey,
-        label: cleanLabel,
+        fieldKey: cleanInternalName,
+        label: cleanVisibleName,
         dataType,
         required,
         optionsJson,
@@ -79,125 +115,144 @@ export default function NewFieldModal(props: {
       props.onClose();
       props.onCreated();
     } catch (e: any) {
-      setError(e?.message ?? "No se pudo crear el campo");
+      setError(e?.message ?? "No se pudo crear el atributo");
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-md"
-        onClick={() => {
-          if (!saving) props.onClose();
-        }}
-      />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-md"
+            onClick={() => {
+              if (!saving) props.onClose();
+            }}
+        />
 
-      <div className="relative z-10 w-full max-w-xl">
-        <Card className="rounded-[32px] border border-white/15 bg-white/[0.08] p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
-          <div className="border-b border-white/10 px-6 py-5">
-            <div className="text-xs uppercase tracking-[0.18em] text-white/40">
-              Nuevo campo
-            </div>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-              Añadir columna a la plantilla
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-white/55">
-              Define un nuevo campo dinámico para esta bitácora.
-            </p>
-          </div>
-
-          <div className="space-y-5 px-6 py-6">
-            <div>
-              <label className="mb-2 block text-sm font-medium text-white/75">
-                fieldKey
-              </label>
-              <input
-                value={fieldKey}
-                onChange={(e) => setFieldKey(e.target.value)}
-                placeholder="Ej: marca"
-                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
-              />
-              <p className="mt-2 text-xs text-white/40">
-                Clave interna única. Mejor sin espacios ni tildes.
+        <div className="relative z-10 w-full max-w-xl">
+          <Card className="rounded-[32px] border border-white/15 bg-white/[0.08] p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+            <div className="border-b border-white/10 px-6 py-5">
+              <div className="text-xs uppercase tracking-[0.18em] text-white/40">
+                Nuevo atributo
+              </div>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
+                Añade un nuevo atributo a la colección
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-white/55">
+                Define un nuevo campo para guardar información dentro de esta colección.
               </p>
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-white/75">
-                Label
-              </label>
-              <input
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                placeholder="Ej: Marca"
-                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-white/75">
-                Tipo de dato
-              </label>
-              <select
-                value={dataType}
-                onChange={(e) => setDataType(e.target.value as FieldType)}
-                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl focus:border-white/25"
-              >
-                <option value="TEXT">TEXT</option>
-                <option value="NUMBER">NUMBER</option>
-                <option value="BOOLEAN">BOOLEAN</option>
-                <option value="DATE">DATE</option>
-                <option value="SELECT">SELECT</option>
-              </select>
-            </div>
-
-            {dataType === "SELECT" && (
+            <div className="space-y-5 px-6 py-6">
               <div>
                 <label className="mb-2 block text-sm font-medium text-white/75">
-                  Opciones
+                  Nombre visible
                 </label>
                 <input
-                  value={optionsText}
-                  onChange={(e) => setOptionsText(e.target.value)}
-                  placeholder="Ej: Gasolina, Diesel, Híbrido, Eléctrico"
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
+                    value={visibleName}
+                    onChange={(e) => setVisibleName(e.target.value)}
+                    placeholder="Ej: Caballos CV"
+                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
                 />
                 <p className="mt-2 text-xs text-white/40">
-                  Escribe las opciones separadas por comas.
+                  Es el nombre que verá el usuario dentro de la colección.
                 </p>
               </div>
-            )}
 
-            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-              <input
-                type="checkbox"
-                checked={required}
-                onChange={(e) => setRequired(e.target.checked)}
-                className="h-4 w-4 rounded border-white/20 bg-black/20"
-              />
-              <span className="text-sm text-white/75">Campo obligatorio</span>
-            </label>
-
-            {error && (
-              <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                {error}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-white/75">
+                  Nombre interno
+                </label>
+                <input
+                    value={internalName}
+                    onChange={(e) => {
+                      setInternalEditedManually(true);
+                      setInternalName(normalizeInternalName(e.target.value));
+                    }}
+                    placeholder="Ej: caballos_cv"
+                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
+                />
+                <p className="mt-2 text-xs text-white/40">
+                  Se usa para identificar el atributo en el sistema. Usa minúsculas, sin espacios y sin tildes.
+                </p>
               </div>
-            )}
-          </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-white/10 px-6 py-5">
-            <Button variant="ghost" onClick={props.onClose} disabled={saving}>
-              Cancelar
-            </Button>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-white/75">
+                  Tipo de dato
+                </label>
+                <select
+                    value={dataType}
+                    onChange={(e) => setDataType(e.target.value as FieldType)}
+                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl focus:border-white/25"
+                >
+                  <option value="TEXT">Texto</option>
+                  <option value="NUMBER">Número</option>
+                  <option value="BOOLEAN">Sí / No</option>
+                  <option value="DATE">Fecha</option>
+                  <option value="SELECT">Lista de opciones</option>
+                </select>
+              </div>
 
-            <Button variant="secondary" onClick={submit} disabled={saving}>
-              {saving ? "Creando..." : "Crear campo"}
-            </Button>
-          </div>
-        </Card>
+              {dataType === "SELECT" && (
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-white/75">
+                      Opciones
+                    </label>
+                    <input
+                        value={optionsText}
+                        onChange={(e) => setOptionsText(e.target.value)}
+                        placeholder="Ej: Rojo, Negro, Azul"
+                        className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
+                    />
+                    <p className="mt-2 text-xs text-white/40">
+                      Escribe las opciones separadas por comas.
+                    </p>
+
+                    {parsedOptions.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {parsedOptions.map((option) => (
+                              <span
+                                  key={option}
+                                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70"
+                              >
+                        {option}
+                      </span>
+                          ))}
+                        </div>
+                    )}
+                  </div>
+              )}
+
+              <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <input
+                    type="checkbox"
+                    checked={required}
+                    onChange={(e) => setRequired(e.target.checked)}
+                    className="h-4 w-4 rounded border-white/20 bg-black/20"
+                />
+                <span className="text-sm text-white/75">Obligatorio</span>
+              </label>
+
+              {error && (
+                  <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    {error}
+                  </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-white/10 px-6 py-5">
+              <Button variant="ghost" onClick={props.onClose} disabled={saving}>
+                Cancelar
+              </Button>
+
+              <Button variant="secondary" onClick={submit} disabled={saving}>
+                {saving ? "Creando..." : "Crear atributo"}
+              </Button>
+            </div>
+          </Card>
+        </div>
       </div>
-    </div>
   );
 }

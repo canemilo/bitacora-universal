@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { Button, Card } from "../components/ui";
 import NewFieldModal from "../components/NewFieldModal";
+import EditRowModal from "../components/EditRowModal";
+import NewRowModal from "../components/NewRowModal";
+
 
 type Field = {
   id: string;
@@ -13,7 +16,7 @@ type Field = {
   orderIndex: number;
 };
 
-type TemplateDetail = {
+type CollectionDetail = {
   id: string;
   name: string;
   description: string | null;
@@ -22,23 +25,44 @@ type TemplateDetail = {
   fields: Field[];
 };
 
+type RowItem = {
+  id: string;
+  displayName: string | null;
+  values: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export default function TemplateDetailPage(props: {
   templateId: string;
   onBack: () => void;
 }) {
-  const [data, setData] = useState<TemplateDetail | null>(null);
+  const [data, setData] = useState<CollectionDetail | null>(null);
+  const [rows, setRows] = useState<RowItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [newRowOpen, setNewRowOpen] = useState(false);
+
   const [newFieldOpen, setNewFieldOpen] = useState(false);
+  const [editingRow, setEditingRow] = useState<RowItem | null>(null);
 
   async function load() {
     setError(null);
     setLoading(true);
+
     try {
-      const res = await api.get<TemplateDetail>(`/api/v1/templates/${props.templateId}`);
-      setData(res);
+      const collectionRes = await api.get<CollectionDetail>(
+          `/api/v1/templates/${props.templateId}`
+      );
+
+      const rowsRes = await api.get<RowItem[]>(
+          `/api/v1/templates/${props.templateId}/rows`
+      );
+
+      setData(collectionRes);
+      setRows(rowsRes);
     } catch (e: any) {
-      setError(e?.message ?? "No se pudo cargar la plantilla");
+      setError(e?.message ?? "No se pudo cargar la colección");
     } finally {
       setLoading(false);
     }
@@ -48,10 +72,29 @@ export default function TemplateDetailPage(props: {
     load();
   }, [props.templateId]);
 
+  const sortedFields = useMemo(() => {
+    if (!data) return [];
+    return [...data.fields].sort((a, b) => a.orderIndex - b.orderIndex);
+  }, [data]);
+
   const nextOrderIndex =
-      data && data.fields.length > 0
-          ? Math.max(...data.fields.map((f) => f.orderIndex)) + 1
+      sortedFields.length > 0
+          ? Math.max(...sortedFields.map((f) => f.orderIndex)) + 1
           : 1;
+
+  function renderCellValue(field: Field, row: RowItem) {
+    const value = row.values?.[field.fieldKey];
+
+    if (value === null || value === undefined || value === "") {
+      return <span className="text-white/30">—</span>;
+    }
+
+    if (field.dataType === "BOOLEAN") {
+      return value ? "Sí" : "No";
+    }
+
+    return String(value);
+  }
 
   return (
       <div className="min-h-screen bg-[#06070a] text-white">
@@ -63,8 +106,31 @@ export default function TemplateDetailPage(props: {
             onCreated={load}
         />
 
-        <div className="mx-auto max-w-6xl px-4 py-8">
-          <div className="mb-6 flex items-center justify-between gap-3">
+        <EditRowModal
+            open={!!editingRow}
+            templateId={props.templateId}
+            row={editingRow}
+            fields={sortedFields}
+            onClose={() => setEditingRow(null)}
+            onSaved={() => {
+              setEditingRow(null);
+              load();
+            }}
+        />
+        <NewRowModal
+            open={newRowOpen}
+            templateId={props.templateId}
+            fields={sortedFields}
+            onClose={() => setNewRowOpen(false)}
+            onCreated={() => {
+              setNewRowOpen(false);
+              load();
+            }}
+        />
+
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          {/* Header */}
+          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <button
                   onClick={props.onBack}
@@ -74,21 +140,27 @@ export default function TemplateDetailPage(props: {
               </button>
 
               <h1 className="text-3xl font-semibold tracking-tight">
-                {data?.name ?? "Plantilla"}
+                {data?.name ?? "Colección"}
               </h1>
 
-              <p className="mt-2 text-sm text-white/60">
+              <p className="mt-2 text-sm text-white/55">
                 {data?.description || "Sin descripción"}
               </p>
+
+              {sortedFields.length > 0 && (
+                  <div className="mt-4 text-sm text-white/45">
+                    {sortedFields.map((f) => f.label).join(" · ")}
+                  </div>
+              )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="secondary" onClick={() => setNewFieldOpen(true)}>
-                + Añadir campo
+                + Añadir atributo
               </Button>
 
-              <Button variant="secondary" disabled>
-                + Nueva fila
+              <Button variant="secondary" onClick={() => setNewRowOpen(true)}>
+                + Nuevo registro
               </Button>
             </div>
           </div>
@@ -100,55 +172,97 @@ export default function TemplateDetailPage(props: {
           )}
 
           {loading ? (
-              <div className="text-sm text-white/60">Cargando plantilla...</div>
+              <div className="text-sm text-white/60">Cargando colección...</div>
           ) : (
-              <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-                <Card title="Campos definidos">
-                  {!data || data.fields.length === 0 ? (
-                      <div className="text-sm text-white/55">
-                        Esta plantilla todavía no tiene campos.
+              <Card className="overflow-hidden rounded-[28px] p-0">
+                {/* Caso vacío de atributos */}
+                {sortedFields.length === 0 ? (
+                    <div className="p-8">
+                      <div className="text-lg font-medium">La colección todavía no tiene atributos</div>
+                      <p className="mt-2 text-sm text-white/55">
+                        Primero añade atributos para definir la estructura de esta colección.
+                      </p>
+                      <div className="mt-5">
+                        <Button variant="secondary" onClick={() => setNewFieldOpen(true)}>
+                          + Añadir primer atributo
+                        </Button>
                       </div>
-                  ) : (
-                      <div className="space-y-3">
-                        {data.fields
-                            .slice()
-                            .sort((a, b) => a.orderIndex - b.orderIndex)
-                            .map((f) => (
-                                <div
-                                    key={f.id}
-                                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+                    </div>
+                ) : (
+                    <>
+                      {/* Encabezado tabla */}
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full border-collapse">
+                          <thead className="bg-white/[0.04]">
+                          <tr className="border-b border-white/10">
+                            <th className="px-4 py-4 text-left text-xs uppercase tracking-[0.18em] text-white/40">
+                              #
+                            </th>
+
+                            {sortedFields.map((field) => (
+                                <th
+                                    key={field.id}
+                                    className="px-4 py-4 text-left text-xs uppercase tracking-[0.18em] text-white/40"
                                 >
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div>
-                                      <div className="font-medium">{f.label}</div>
-                                      <div className="text-xs text-white/45">
-                                        key: {f.fieldKey}
-                                      </div>
-                                    </div>
-
-                                    <div className="text-right text-xs text-white/55">
-                                      <div>{f.dataType}</div>
-                                      <div>{f.required ? "Obligatorio" : "Opcional"}</div>
-                                    </div>
+                                  <div>{field.label}</div>
+                                  <div className="mt-1 text-[10px] normal-case tracking-normal text-white/25">
+                                    {field.dataType}
                                   </div>
-
-                                  {f.optionsJson && (
-                                      <div className="mt-2 text-xs text-white/40">
-                                        options: {f.optionsJson}
-                                      </div>
-                                  )}
-                                </div>
+                                </th>
                             ))}
-                      </div>
-                  )}
-                </Card>
 
-                <Card title="Datos (rows)">
-                  <div className="text-sm text-white/55">
-                    Aquí mostraremos las filas dinámicas cuando creemos el formulario de rows.
-                  </div>
-                </Card>
-              </div>
+                            <th className="px-4 py-4 text-left text-xs uppercase tracking-[0.18em] text-white/40">
+                              Acciones
+                            </th>
+                          </tr>
+                          </thead>
+
+                          <tbody>
+                          {rows.length === 0 ? (
+                              <tr>
+                                <td
+                                    colSpan={sortedFields.length + 2}
+                                    className="px-4 py-10 text-center text-sm text-white/50"
+                                >
+                                  No hay registros todavía.
+                                </td>
+                              </tr>
+                          ) : (
+                              rows.map((row, index) => (
+                                  <tr
+                                      key={row.id}
+                                      className="border-b border-white/8 transition hover:bg-white/[0.03]"
+                                  >
+                                    <td className="px-4 py-4 text-sm text-white/45">
+                                      {index + 1}
+                                    </td>
+
+                                    {sortedFields.map((field) => (
+                                        <td
+                                            key={field.id}
+                                            className="px-4 py-4 text-sm text-white/80"
+                                        >
+                                          {renderCellValue(field, row)}
+                                        </td>
+                                    ))}
+
+                                    <td className="px-4 py-4">
+                                      <Button
+                                          variant="ghost"
+                                          onClick={() => setEditingRow(row)}
+                                      >
+                                        Editar
+                                      </Button>
+                                    </td>
+                                  </tr>
+                              ))
+                          )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                )}
+              </Card>
           )}
         </div>
       </div>
