@@ -239,6 +239,39 @@ Intereses:
 •	automatización
 •	Ciberseguridad
 
-![Full Stack](https://img.shields.io/badge/stack-fullstack-blue)
-![REST API](https://img.shields.io/badge/API-REST-green)
-![JWT Auth](https://img.shields.io/badge/auth-JWT-orange)
+
+<h1 align="center">Bitácora</h1>
+
+<p align="center">
+A dynamic data collection platform to build flexible personal databases.
+</p>
+
+<p align="center">
+
+<img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" />
+<img src="https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />
+<img src="https://img.shields.io/badge/SpringSecurity-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white" />
+<img src="https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=jsonwebtokens" />
+
+<br>
+
+<img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react" />
+<img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript" />
+<img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite" />
+<img src="https://img.shields.io/badge/TailwindCSS-38BDF8?style=for-the-badge&logo=tailwindcss" />
+
+<br>
+
+<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql" />
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker" />
+
+</p>
+
+<p align="center">
+
+<img src="https://img.shields.io/github/repo-size/canemilo/bitacora-universal" />
+<img src="https://img.shields.io/github/stars/canemilo/bitacora-universal" />
+<img src="https://img.shields.io/github/issues/canemilo/bitacora-universal" />
+<img src="https://img.shields.io/github/license/canemilo/bitacora-universal" />
+
+</p>
