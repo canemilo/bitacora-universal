@@ -1,10 +1,5 @@
 #  Bitácora 
 
-![GitHub repo size](https://img.shields.io/github/repo-size/canemilo/bitacora-universal)
-![GitHub stars](https://img.shields.io/github/stars/canemilo/bitacora-universal)
-![GitHub forks](https://img.shields.io/github/forks/canemilo/bitacora-universal)
-![GitHub issues](https://img.shields.io/github/issues/canemilo/bitacora-universal)
-
 ## Tech Stack
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
@@ -243,3 +238,7 @@ Intereses:
 •	arquitectura de software
 •	automatización
 •	Ciberseguridad
+
+![Full Stack](https://img.shields.io/badge/stack-fullstack-blue)
+![REST API](https://img.shields.io/badge/API-REST-green)
+![JWT Auth](https://img.shields.io/badge/auth-JWT-orange)
