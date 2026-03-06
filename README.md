@@ -11,53 +11,56 @@
 
 #  Bitácora 
 
-** Bitácora ** es una aplicación **full-stack** que permite crear **plantillas dinámicas** para registrar y organizar cualquier tipo de información.
+# Bitácora
 
-La aplicación permite definir **estructuras de datos personalizadas** y registrar filas dinámicas, similar a herramientas como:
+Bitácora is a full-stack application that allows users to create **dynamic data collections** to organize and manage information.
 
-- Airtable
-- Notion Databases
-- Retool
+Users can define **custom data structures** by creating fields and storing records as rows. This makes it possible to build flexible personal databases for many use cases such as inventories, logs, directories, or custom trackers.
 
-pero en una versión **ligera y personalizable**.
+The goal of the project is to provide a **lightweight and customizable alternative** to spreadsheets or visual database tools.
 
 ---
 
-#  Características
+# ✨ Features
 
- Autenticación segura con **JWT**  
- Creación de **plantillas dinámicas**  
- Definición de **campos personalizados**  
- Registro de **filas dinámicas**  
- Dashboard moderno estilo **Apple / Figma**  
- Buscador de plantillas  
- Paginación  
- Arquitectura **frontend + backend desacoplada**
+- Create dynamic collections
+- Define custom fields
+- Store records as rows
+- Authentication with JWT
+- REST API
+- Clean modern UI
+- Full-stack architecture
 
 ---
 
-#  Concepto del sistema
+# 🧠 Concept
 
-Cada plantilla funciona como una **mini base de datos personalizable**.
+Bitácora works like a **personal database builder**.
 
-Ejemplo:
+Instead of hardcoding tables, users can create their own structure dynamically.
 
-## Plantilla
-Coches
+Example:
 
-## Campos dinámicos
-Marca
-Modelo
-Año
-Combustible
-Precio
+Collection: **Cars**
 
-## Filas registradas
-Volkswagen | Golf | 2019 | Gasolina | 22000
-Toyota | Corolla | 2021 | Híbrido | 26000
+Fields:
+- Brand
+- Model
+- Year
+- Price
+
+Rows:
+
+| Brand | Model | Year | Price |
+|------|------|------|------|
+| BMW | M3 | 2022 | 85000 |
+| Audi | RS5 | 2021 | 72000 |
+
 ---
 
-#  Arquitectura
+# 🏗 Architecture
+
+The project follows a **full-stack architecture**:
 
 
 User
@@ -208,7 +211,8 @@ bitacora-universal
 
 # Objetivo del proyecto
 
-Este proyecto fue creado como experimento de arquitectura full-stack para construir sistemas de datos dinámicos reutilizables.
+Este proyecto empezó como una forma de experimentar con
+plantillas dinámicas y bases de datos flexibles.
 
 Inspirado en herramientas como:
 •	Airtable
