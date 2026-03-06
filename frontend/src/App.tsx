@@ -23,9 +23,10 @@ export default function App() {
         setError(null);
         setLoading(true);
         try {
-            setTemplates(await api.get<Template[]>("/api/v1/templates"));
+            const data = await api.get<Template[]>("/api/v1/templates");
+            setTemplates(data);
         } catch (e: any) {
-            setError(e.message ?? "Error");
+            setError(e?.message ?? "Error");
         } finally {
             setLoading(false);
         }
@@ -39,11 +40,7 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-black text-white">
-            <NewTemplateModal
-                open={newOpen}
-                onClose={() => setNewOpen(false)}
-                onCreated={load}
-            />
+            <NewTemplateModal open={newOpen} onClose={() => setNewOpen(false)} onCreated={load} />
 
             <div className="mx-auto max-w-5xl px-4 py-10">
                 <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

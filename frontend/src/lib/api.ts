@@ -27,12 +27,9 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
 
   if (!res.ok) {
-    let detail = `${res.status} ${res.statusText}`;
-    try {
-      const body = await res.json().catch(() => null);
-      detail = body?.detail ?? body?.message ?? detail;
-    } catch {}
-    throw new Error(detail);
+    const body = await res.json().catch(() => null);
+    const msg = body?.detail || body?.message || res.statusText || `${res.status}`;
+    throw new Error(msg);
   }
 
   if (res.status === 204) return undefined as T;
