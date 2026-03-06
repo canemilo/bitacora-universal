@@ -1,4 +1,4 @@
-# Bitácora Universal
+# Bitácora 
 
 Aplicación tipo “Excel personal” donde cada usuario puede crear **Plantillas** (categorías como “Coches”, “Ciudades”, “Restaurantes”), definir **Columnas** (campos) y añadir **Filas** (registros) de forma indefinida.
 
