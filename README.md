@@ -1,260 +1,211 @@
 <h1 align="center">ＢＩＴÁＣＯＲＡ</h1>
 <p align="center">
-A dynamic data collection platform to build flexible personal databases.
-</p>
+  <i>Build your own personal databases – no schema required.</i>
+</p><p align="center">
+  <img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" />
+  <img src="https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />
+  <img src="https://img.shields.io/badge/SpringSecurity-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white" />
+  <img src="https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=jsonwebtokens" />
+  <br>
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite" />
+  <img src="https://img.shields.io/badge/TailwindCSS-38BDF8?style=for-the-badge&logo=tailwindcss" />
+  <br>
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker" />
+</p><p align="center">
+  <img src="https://img.shields.io/github/repo-size/canemilo/bitacora-universal" />
+  <img src="https://img.shields.io/github/stars/canemilo/bitacora-universal" />
+  <img src="https://img.shields.io/github/issues/canemilo/bitacora-universal" />
+  <img src="https://img.shields.io/github/license/canemilo/bitacora-universal" />
+</p>---
 
-<p align="center">
+What’s Bitácora?
 
-<img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" />
-<img src="https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />
-<img src="https://img.shields.io/badge/SpringSecurity-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white" />
-<img src="https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=jsonwebtokens" />
+Bitácora is a full‑stack web app that lets you create custom data collections on the fly.
+Think of it as your personal database builder – you define the fields you need (text, numbers, dates, etc.) and start adding records right away. No need to write SQL or design tables beforehand.
 
-<br>
-
-<img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react" />
-<img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript" />
-<img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite" />
-<img src="https://img.shields.io/badge/TailwindCSS-38BDF8?style=for-the-badge&logo=tailwindcss" />
-
-<br>
-
-<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql" />
-<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker" />
-
-</p>
-
-<p align="center">
-
-<img src="https://img.shields.io/github/repo-size/canemilo/bitacora-universal" />
-<img src="https://img.shields.io/github/stars/canemilo/bitacora-universal" />
-<img src="https://img.shields.io/github/issues/canemilo/bitacora-universal" />
-<img src="https://img.shields.io/github/license/canemilo/bitacora-universal" />
-
-</p>
-
-#  Bitácora 
-
-Bitácora is a full-stack application that allows users to create **dynamic data collections** to organize and manage information.
-
-Users can define **custom data structures** by creating fields and storing records as rows. This makes it possible to build flexible personal databases for many use cases such as inventories, logs, directories, or custom trackers.
-
-The goal of the project is to provide a **lightweight and customizable alternative** to spreadsheets or visual database tools.
+I built it because I got tired of juggling spreadsheets and wanted something more structured yet flexible – a bit like Airtable or Notion databases, but lighter and fully under my control. It’s also been a great playground for learning full‑stack development with Spring Boot and React.
 
 ---
 
-# Features
+ Features
 
-- Create dynamic collections
-- Define custom fields
-- Store records as rows
-- Authentication with JWT
-- REST API
-- Clean modern UI
-- Full-stack architecture
+· Create and manage multiple collections (I call them templates)
+· Define custom fields per collection: text, number, date, etc.
+· Add, edit, and delete records as rows
+· User authentication with JWT – your data stays private
+· Clean, modern UI with dark theme and glassmorphism
+· RESTful API for everything
 
 ---
 
-# Concept
+ How it works
 
-Bitácora works like a **personal database builder**.
-
-Instead of hardcoding tables, users can create their own structure dynamically.
+A collection is just a set of fields. Once you create a collection, you can start filling in rows – each row holds values for the fields you defined.
 
 Example:
 
-Collection: **Cars**
+· Collection: Cars
+· Fields: Brand, Model, Year, Price
+· Rows:
 
-Fields:
-- Brand
-- Model
-- Year
-- Price
+Brand Model Year Price
+BMW M3 2022 85000
+Audi RS5 2021 72000
 
-Rows:
-
-| Brand | Model | Year | Price |
-|------|------|------|------|
-| BMW | M3 | 2022 | 85000 |
-| Audi | RS5 | 2021 | 72000 |
+You can use this for anything: inventory, logs, contact directories, reading lists, workout trackers – whatever comes to mind.
 
 ---
 
-# Architecture
+ Architecture
 
-The project follows a **full-stack architecture**:
+Bitácora follows a classic three‑tier architecture:
 
-![Architecture](https://img.shields.io/badge/architecture-full--stack-blue)
-![API](https://img.shields.io/badge/API-REST-green)
-![Auth](https://img.shields.io/badge/auth-JWT-orange)
+· Frontend: React + TypeScript (Vite, Tailwind)
+· Backend: Spring Boot + Spring Security + JWT
+· Database: MySQL
+
+The frontend talks to the backend through a REST API. Authentication is handled via JWT tokens – you log in, get a token, and include it in subsequent requests.
+
+```
 User
-
-└── Template
-
-├── Fields
-
-└── Rows
-
-└── Values dinámicos
-
-# Arquitectura del proyecto:
-
+  │
+  ▼
 Frontend (React)
-
-│
-
-│ 
-REST API
-
-▼
-
+  │
+  │  REST API
+  ▼
 Backend (Spring Boot)
-
-│
-
-▼
-
+  │
+  ▼
 Database (MySQL)
+```
 
 ---
 
-#  Tecnologías
+🛠️ Tech stack
 
-## Backend
+Backend
 
-- Java
-- Spring Boot
-- Spring Security
-- JWT Authentication
-- REST API
-- Maven
-- MySQL
+· Java 17
+· Spring Boot
+· Spring Security
+· JWT (io.jsonwebtoken)
+· Maven
+· MySQL
 
-### Funciones principales del backend:
+Frontend
 
-- autenticación JWT
-- seguridad de endpoints
-- gestión de plantillas
-- gestión de campos dinámicos
-- gestión de filas
+· React 18
+· TypeScript
+· Vite
+· TailwindCSS
+· React Router
+· Axios
 
----
+Infrastructure
 
-## Frontend
-
-- React
-- TypeScript
-- TailwindCSS
-- Vite
-
+· Docker (for MySQL)
+· docker-compose
 
 ---
 
-#  Interfaz
+ Getting started
 
-## El dashboard incluye:
+Prerequisites
 
-- panel principal de plantillas
-- buscador lateral
-- estadísticas rápidas
-- menú de usuario
-- modales para crear plantillas
+· Java 17+
+· Node.js 18+
+· MySQL (or use the Docker container provided)
+· Docker (optional, for easy MySQL setup)
 
-## Estilo visual:
+Clone the repository
 
-- dark theme
+```bash
+git clone https://github.com/canemilo/bitacora-universal.git
+cd bitacora-universal
+```
 
-- glassmorphism
+Database (using Docker)
+
+```bash
+docker-compose up -d mysql
+```
+
+This starts a MySQL instance on port 3306 with the default credentials (root/root). The database bitacora will be created automatically.
+
+Backend
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+The API will be available at http://localhost:8080.
+
+Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The development server runs on http://localhost:5173.
 
 ---
 
-#  Estructura del proyecto
+ Authentication & API
 
-bitacora-universal
-│
+The API is secured – you need to register and log in to get a JWT.
 
-├── backend
+· POST /api/v1/auth/register – create a new user
+· POST /api/v1/auth/login – obtain a JWT
 
-│   ├── src
+Include the token in the Authorization header for all subsequent requests:
 
-│   ├── pom.xml
+```
+Authorization: Bearer <your-token>
+```
 
-│   └── Spring Boot API
+Main endpoints
 
-│
+· GET /api/v1/templates – list all collections
+· POST /api/v1/templates – create a new collection
+· GET /api/v1/templates/{id} – get a collection with its fields and rows
+· POST /api/v1/templates/{id}/fields – add a field to a collection
 
-├── frontend
+More endpoints for rows, updates, and deletions are available – check the source or import the Postman collection (if I ever get around to documenting it properly).
 
-│   ├── src
+---
 
-│   │   ├── components
+Project structure
 
-│   │   ├── pages
-
-│   │   ├── lib
-
+```
+bitacora-universal/
+├── backend/                # Spring Boot application
+│   ├── src/
+│   └── pom.xml
+├── frontend/               # React + Vite app
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/          # Page views (Dashboard, Template, etc.)
+│   │   ├── lib/            # API client, utils
 │   │   └── App.tsx
+│   └── package.json
+├── infra/                  # Docker configs
+│   └── mysql/
+└── docker-compose.yml      # Spins up MySQL
+```
 
-│   └── React + Vite
-│
+---
 
-├── infra
+About me
 
-│   └── mysql
-│
+Hi, I’m Daniel Garrido – a student of Multiplatform Application Development (DAM) with a passion for full‑stack development, software architecture, and cybersecurity.
 
-└── docker-compose.yml
+I started Bitácora to scratch my own itch: I wanted a tool that lets me build simple databases without the overhead of a full spreadsheet or a complex SaaS. It’s also been a fantastic way to put into practice what I’ve learned about Spring Security, JWT, React hooks, and modern frontend tooling.
 
-## Ejecutar backend
-
-- cd backend
-- ./mvnw spring-boot:run
-
-## Ejecutar frontend
-- cd frontend
-- npm install
-- npm run dev
-
-# Autenticación
-- La aplicación utiliza JWT authentication.
-
-- login → token JWT token → Authorization header
-
-# API
-## Autenticación
-- POST /api/v1/auth/register
-- POST /api/v1/auth/login
-
-## Templates
-- GET /api/v1/templates
-- POST /api/v1/templates
-- GET /api/v1/templates/{id}
-
-## Fields
-- POST /api/v1/templates/{id}/fields
-
-![Code Style](https://img.shields.io/badge/code%20style-clean-blue)
-![Code Quality](https://img.shields.io/badge/code%20quality-good-green)
-![Security](https://img.shields.io/badge/security-JWT-orange)
-# Objetivo del proyecto
-
-Este proyecto empezó como una forma de experimentar con
-plantillas dinámicas y bases de datos flexibles.
-
-Inspirado en herramientas como:
-•	Airtable
-•	Notion
-•	Retool
-
-# Autor
-Daniel Garrido
-
-Estudiante de Desarrollo de Aplicaciones Multiplataforma (DAM).
-
-Intereses:
-•	desarrollo full-stack
-•	arquitectura de software
-•	automatización
-•	Ciberseguridad
-
-
+If you have ideas, find a bug, or just want to chat, feel free to open an issue or reach out.
