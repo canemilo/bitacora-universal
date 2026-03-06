@@ -1,6 +1,4 @@
-<p align="center">
-  <span style="font-size: 42px;"><strong>BITÁCORA</strong></span>
-</p>
+<h1 align="center">ＢＩＴÁＣＯＲＡ</h1>
 <p align="center">
 A dynamic data collection platform to build flexible personal databases.
 </p>
