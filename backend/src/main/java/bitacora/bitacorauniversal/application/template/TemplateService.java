@@ -1,61 +1,60 @@
 package bitacora.bitacorauniversal.application.template;
 
+import bitacora.bitacorauniversal.infrastructure.persistence.ObjectRowRepository;
 import bitacora.bitacorauniversal.infrastructure.persistence.TemplateEntity;
-import bitacora.bitacorauniversal.infrastructure.persistence.TemplateFieldEntity;
 import bitacora.bitacorauniversal.infrastructure.persistence.TemplateFieldRepository;
 import bitacora.bitacorauniversal.infrastructure.persistence.TemplateRepository;
 import bitacora.bitacorauniversal.security.AuthContext;
 import bitacora.bitacorauniversal.shared.errors.ConflictException;
-import bitacora.bitacorauniversal.web.template.dto.CreateTemplateRequest;
 import bitacora.bitacorauniversal.web.template.dto.FieldResponse;
+import bitacora.bitacorauniversal.web.template.dto.PatchTemplateRequest;
 import bitacora.bitacorauniversal.web.template.dto.TemplateDetailResponse;
 import bitacora.bitacorauniversal.web.template.dto.TemplateResponse;
 import org.springframework.stereotype.Service;
-
+import bitacora.bitacorauniversal.web.template.dto.CreateTemplateRequest;
 import java.util.List;
 import java.util.UUID;
-
+import org.springframework.transaction.annotation.Transactional;
 @Service
 public class TemplateService {
 
     private final TemplateRepository repository;
     private final TemplateFieldRepository fieldRepository;
+    private final ObjectRowRepository rowRepository;
 
-    public TemplateService(TemplateRepository repository,
-                           TemplateFieldRepository fieldRepository) {
+    public TemplateService(
+            TemplateRepository repository,
+            TemplateFieldRepository fieldRepository,
+            ObjectRowRepository rowRepository
+    ) {
         this.repository = repository;
         this.fieldRepository = fieldRepository;
+        this.rowRepository = rowRepository;
     }
 
-    private String ownerId() { return AuthContext.requireUserId().toString(); }
+    private String ownerId() {
+        return AuthContext.requireUserId().toString();
+    }
 
-    public TemplateResponse create(CreateTemplateRequest req) {
-        String owner = ownerId();
-        String name = req.getName().trim();
-
-        if (repository.existsByOwnerIdAndName(owner, name)) {
-            throw new ConflictException("Ya existe una plantilla con ese nombre");
-        }
-
-        TemplateEntity e = new TemplateEntity();
-        e.setOwnerId(owner);
-        e.setName(name);
-        e.setDescription(req.getDescription() == null ? null : req.getDescription().trim());
-
-        TemplateEntity saved = repository.save(e);
-        return new TemplateResponse(saved.getId(), saved.getName(), saved.getDescription(), saved.getCreatedAt(), saved.getUpdatedAt());
+    public List<TemplateResponse> list() {
+        return repository.findByOwnerIdOrderByCreatedAtDesc(ownerId())
+                .stream()
+                .map(t -> new TemplateResponse(
+                        t.getId(),
+                        t.getName(),
+                        t.getDescription(),
+                        t.getCreatedAt(),
+                        t.getUpdatedAt()
+                ))
+                .toList();
     }
 
     public TemplateDetailResponse getOneWithFields(UUID templateId) {
-        String owner = ownerId();
-        System.out.println("[TEMPLATE SERVICE] getOneWithFields templateId=" + templateId + " ownerId=" + owner);
+        TemplateEntity template = repository.findByIdAndOwnerId(templateId, ownerId())
+                .orElseThrow(() -> new ConflictException("Colección no encontrada o no pertenece al usuario"));
 
-        TemplateEntity t = repository.findByIdAndOwnerId(templateId, owner)
-                .orElseThrow(() -> new ConflictException("Template no encontrado"));
-
-        List<TemplateFieldEntity> fields = fieldRepository.findByTemplateIdOrderByOrderIndexAsc(templateId);
-
-        List<FieldResponse> fieldResponses = fields.stream()
+        List<FieldResponse> fields = fieldRepository.findByTemplateIdOrderByOrderIndexAsc(templateId)
+                .stream()
                 .map(f -> new FieldResponse(
                         f.getId(),
                         f.getFieldKey(),
@@ -68,19 +67,77 @@ public class TemplateService {
                 .toList();
 
         return new TemplateDetailResponse(
-                t.getId(), t.getName(), t.getDescription(),
-                t.getCreatedAt(), t.getUpdatedAt(),
-                fieldResponses
+                template.getId(),
+                template.getName(),
+                template.getDescription(),
+                template.getCreatedAt(),
+                template.getUpdatedAt(),
+                fields
         );
     }
 
-    public List<TemplateResponse> list() {
-        String owner = ownerId();
-        System.out.println("[TEMPLATE SERVICE] list ownerId=" + owner);
+    public TemplateResponse patch(UUID templateId, PatchTemplateRequest req) {
+        TemplateEntity template = repository.findByIdAndOwnerId(templateId, ownerId())
+                .orElseThrow(() -> new ConflictException("Colección no encontrada o no pertenece al usuario"));
 
-        return repository.findByOwnerIdOrderByCreatedAtDesc(owner)
-                .stream()
-                .map(t -> new TemplateResponse(t.getId(), t.getName(), t.getDescription(), t.getCreatedAt(), t.getUpdatedAt()))
-                .toList();
+        String newName = req.getName() != null ? req.getName().trim() : "";
+        if (newName.isEmpty()) {
+            throw new ConflictException("El nombre de la colección es obligatorio");
+        }
+
+        String newDescription = req.getDescription() != null ? req.getDescription().trim() : null;
+        if (newDescription != null && newDescription.isEmpty()) {
+            newDescription = null;
+        }
+
+        template.setName(newName);
+        template.setDescription(newDescription);
+
+        TemplateEntity saved = repository.save(template);
+
+        return new TemplateResponse(
+                saved.getId(),
+                saved.getName(),
+                saved.getDescription(),
+                saved.getCreatedAt(),
+                saved.getUpdatedAt()
+        );
+    }
+
+    public TemplateResponse create(CreateTemplateRequest req) {
+        String name = req.getName() != null ? req.getName().trim() : "";
+        if (name.isEmpty()) {
+            throw new ConflictException("El nombre de la colección es obligatorio");
+        }
+
+        String description = req.getDescription() != null ? req.getDescription().trim() : null;
+        if (description != null && description.isEmpty()) {
+            description = null;
+        }
+
+        TemplateEntity template = new TemplateEntity();
+        template.setOwnerId(ownerId());
+        template.setName(name);
+        template.setDescription(description);
+
+        TemplateEntity saved = repository.save(template);
+
+        return new TemplateResponse(
+                saved.getId(),
+                saved.getName(),
+                saved.getDescription(),
+                saved.getCreatedAt(),
+                saved.getUpdatedAt()
+        );
+    }
+
+    @Transactional
+    public void delete(UUID templateId) {
+        TemplateEntity template = repository.findByIdAndOwnerId(templateId, ownerId())
+                .orElseThrow(() -> new ConflictException("Colección no encontrada o no pertenece al usuario"));
+
+        rowRepository.deleteByOwnerIdAndTemplateId(ownerId(), templateId);
+        fieldRepository.deleteByTemplateId(templateId);
+        repository.delete(template);
     }
 }

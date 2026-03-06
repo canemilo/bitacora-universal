@@ -152,6 +152,10 @@ export default function App() {
             <TemplateDetailPage
                 templateId={selectedTemplateId}
                 onBack={() => setSelectedTemplateId(null)}
+                onDeleted={(deletedId) => {
+                    setTemplates((prev) => prev.filter((t) => t.id !== deletedId));
+                    setSelectedTemplateId(null);
+                }}
             />
         );
     }

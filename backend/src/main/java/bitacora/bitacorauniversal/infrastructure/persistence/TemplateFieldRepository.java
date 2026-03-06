@@ -12,5 +12,7 @@ public interface TemplateFieldRepository extends JpaRepository<TemplateFieldEnti
 
     List<TemplateFieldEntity> findByTemplateIdOrderByOrderIndexAsc(UUID templateId);
 
+    void deleteByTemplateId(UUID templateId);
+
     Optional<TemplateFieldEntity> findByIdAndTemplateId(UUID id, UUID templateId);
 }

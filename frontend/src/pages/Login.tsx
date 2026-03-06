@@ -8,7 +8,7 @@ type AuthResponse = { token: string };
 export function LoginPage(props: { onDone: () => void }) {
   const [email, setEmail] = useState("daniel@test.com");
   const [password, setPassword] = useState("123456");
-  const [mode, setMode] = useState<"login" | "register">("register");
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -20,8 +20,22 @@ export function LoginPage(props: { onDone: () => void }) {
       const path =
           mode === "login" ? "/api/v1/auth/login" : "/api/v1/auth/register";
 
-      const res = await api.post<AuthResponse>(path, { email, password });
-      setToken(res.token);
+      const res = await fetch(`http://localhost:8080${path}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const body = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        const msg = body?.detail || body?.message || res.statusText || "Error";
+        throw new Error(msg);
+      }
+
+      setToken(body.token);
       props.onDone();
     } catch (e: any) {
       const msg = e?.message ?? "Error";
@@ -42,13 +56,11 @@ export function LoginPage(props: { onDone: () => void }) {
 
   return (
       <div className="relative min-h-screen overflow-hidden bg-[#06070a] text-white">
-        {/* Fondo decorativo */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute left-[-120px] top-[-100px] h-[340px] w-[340px] rounded-full bg-cyan-400/12 blur-3xl" />
           <div className="absolute right-[-140px] top-[120px] h-[320px] w-[320px] rounded-full bg-fuchsia-400/10 blur-3xl" />
           <div className="absolute bottom-[-120px] left-1/3 h-[360px] w-[360px] rounded-full bg-blue-500/10 blur-3xl" />
 
-          {/* BITÁCORA gigante de fondo */}
           <div className="absolute inset-x-0 top-12 select-none text-center">
             <div className="text-[20vw] font-black uppercase tracking-[0.22em] text-white/[0.035]">
               BITÁCORA
@@ -58,7 +70,6 @@ export function LoginPage(props: { onDone: () => void }) {
 
         <div className="relative z-10 flex min-h-screen items-center justify-center px-4">
           <div className="grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-            {/* Columna izquierda */}
             <div className="hidden lg:block">
               <div className="max-w-2xl">
                 <div className="inline-flex items-center rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/55 backdrop-blur-md">
@@ -95,7 +106,6 @@ export function LoginPage(props: { onDone: () => void }) {
               </div>
             </div>
 
-            {/* Card login */}
             <div className="w-full max-w-md justify-self-center lg:justify-self-end">
               <Card className="rounded-[32px] border border-white/15 bg-white/[0.08] p-7 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
                 <div>

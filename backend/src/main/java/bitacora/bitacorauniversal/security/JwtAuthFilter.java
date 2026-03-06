@@ -23,6 +23,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
+
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
@@ -33,8 +34,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         System.out.println("[JWT FILTER] " + method + " " + path);
 
-        if ("OPTIONS".equalsIgnoreCase(method)) {
-            System.out.println("[JWT FILTER] OPTIONS permitido");
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
         }

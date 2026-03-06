@@ -10,5 +10,6 @@ public interface ObjectRowRepository extends JpaRepository<ObjectRowEntity, UUID
 
     List<ObjectRowEntity> findByOwnerIdAndTemplateIdOrderByCreatedAtDesc(String ownerId, UUID templateId);
 
+    void deleteByOwnerIdAndTemplateId(String ownerId, UUID templateId);
     Optional<ObjectRowEntity> findByIdAndOwnerIdAndTemplateId(UUID id, String ownerId, UUID templateId);
 }
