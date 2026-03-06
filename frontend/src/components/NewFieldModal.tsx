@@ -4,6 +4,16 @@ import { Button, Card } from "./ui";
 
 type FieldType = "TEXT" | "NUMBER" | "BOOLEAN" | "DATE" | "SELECT";
 
+type EditableField = {
+  id: string;
+  fieldKey: string;
+  label: string;
+  dataType: string;
+  required: boolean;
+  optionsJson?: string | null;
+  orderIndex: number;
+};
+
 function normalizeInternalName(value: string): string {
   return value
       .trim()
@@ -22,6 +32,8 @@ export default function NewFieldModal(props: {
   nextOrderIndex: number;
   onClose: () => void;
   onCreated: () => void;
+  mode?: "create" | "edit";
+  fieldToEdit?: EditableField | null;
 }) {
   const [internalName, setInternalName] = useState("");
   const [visibleName, setVisibleName] = useState("");
@@ -29,8 +41,32 @@ export default function NewFieldModal(props: {
   const [required, setRequired] = useState(false);
   const [optionsText, setOptionsText] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [internalEditedManually, setInternalEditedManually] = useState(false);
+
+  const mode = props.mode ?? "create";
+  const isEdit = mode === "edit";
+
+  async function deleteField() {
+    if (!isEdit || !props.fieldToEdit) return;
+
+    setError(null);
+    setDeleting(true);
+
+    try {
+      await api.del(
+          `/api/v1/templates/${props.templateId}/fields/${props.fieldToEdit.id}`
+      );
+
+      props.onClose();
+      props.onCreated();
+    } catch (e: any) {
+      setError(e?.message ?? "No se pudo borrar el atributo");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     if (!props.open) {
@@ -44,6 +80,42 @@ export default function NewFieldModal(props: {
       setInternalEditedManually(false);
     }
   }, [props.open]);
+
+  useEffect(() => {
+    if (!props.open) return;
+
+    if (isEdit && props.fieldToEdit) {
+      setInternalName(props.fieldToEdit.fieldKey ?? "");
+      setVisibleName(props.fieldToEdit.label ?? "");
+      setDataType((props.fieldToEdit.dataType as FieldType) ?? "TEXT");
+      setRequired(props.fieldToEdit.required ?? false);
+      setOptionsText(() => {
+        try {
+          const parsed = props.fieldToEdit?.optionsJson
+              ? JSON.parse(props.fieldToEdit.optionsJson)
+              : [];
+          return Array.isArray(parsed) ? parsed.join(", ") : "";
+        } catch {
+          return "";
+        }
+      });
+      setSaving(false);
+      setError(null);
+      setInternalEditedManually(true);
+      return;
+    }
+
+    if (!isEdit) {
+      setInternalName("");
+      setVisibleName("");
+      setDataType("TEXT");
+      setRequired(false);
+      setOptionsText("");
+      setSaving(false);
+      setError(null);
+      setInternalEditedManually(false);
+    }
+  }, [props.open, isEdit, props.fieldToEdit]);
 
   useEffect(() => {
     if (!internalEditedManually) {
@@ -103,19 +175,36 @@ export default function NewFieldModal(props: {
     setSaving(true);
 
     try {
-      await api.post(`/api/v1/templates/${props.templateId}/fields`, {
+      const payload = {
         fieldKey: cleanInternalName,
         label: cleanVisibleName,
         dataType,
         required,
         optionsJson,
-        orderIndex: props.nextOrderIndex,
-      });
+        orderIndex:
+            isEdit && props.fieldToEdit
+                ? props.fieldToEdit.orderIndex
+                : props.nextOrderIndex,
+      };
+
+      if (isEdit && props.fieldToEdit) {
+        await api.patch(
+            `/api/v1/templates/${props.templateId}/fields/${props.fieldToEdit.id}`,
+            payload
+        );
+      } else {
+        await api.post(`/api/v1/templates/${props.templateId}/fields`, payload);
+      }
 
       props.onClose();
       props.onCreated();
     } catch (e: any) {
-      setError(e?.message ?? "No se pudo crear el atributo");
+      setError(
+          e?.message ??
+          (isEdit
+              ? "No se pudo actualizar el atributo"
+              : "No se pudo crear el atributo")
+      );
     } finally {
       setSaving(false);
     }
@@ -134,13 +223,17 @@ export default function NewFieldModal(props: {
           <Card className="rounded-[32px] border border-white/15 bg-white/[0.08] p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
             <div className="border-b border-white/10 px-6 py-5">
               <div className="text-xs uppercase tracking-[0.18em] text-white/40">
-                Nuevo atributo
+                {isEdit ? "Editar atributo" : "Nuevo atributo"}
               </div>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
-                Añade un nuevo atributo a la colección
+                {isEdit
+                    ? "Modifica el atributo de la colección"
+                    : "Añade un nuevo atributo a la colección"}
               </h2>
               <p className="mt-2 text-sm leading-6 text-white/55">
-                Define un nuevo campo para guardar información dentro de esta colección.
+                {isEdit
+                    ? "Actualiza el nombre, el tipo o las reglas de este atributo."
+                    : "Define un nuevo campo para guardar información dentro de esta colección."}
               </p>
             </div>
 
@@ -174,7 +267,8 @@ export default function NewFieldModal(props: {
                     className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none backdrop-blur-xl placeholder:text-white/30 focus:border-white/25"
                 />
                 <p className="mt-2 text-xs text-white/40">
-                  Se usa para identificar el atributo en el sistema. Usa minúsculas, sin espacios y sin tildes.
+                  Se usa para identificar el atributo en el sistema. Usa minúsculas,
+                  sin espacios y sin tildes.
                 </p>
               </div>
 
@@ -242,14 +336,42 @@ export default function NewFieldModal(props: {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-white/10 px-6 py-5">
-              <Button variant="ghost" onClick={props.onClose} disabled={saving}>
-                Cancelar
-              </Button>
+            <div className="flex items-center justify-between gap-3 border-t border-white/10 px-6 py-5">
+              <div>
+                {isEdit && (
+                    <Button
+                        variant="ghost"
+                        onClick={deleteField}
+                        disabled={saving || deleting}
+                    >
+                      {deleting ? "Borrando..." : "Borrar atributo"}
+                    </Button>
+                )}
+              </div>
 
-              <Button variant="secondary" onClick={submit} disabled={saving}>
-                {saving ? "Creando..." : "Crear atributo"}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                    variant="ghost"
+                    onClick={props.onClose}
+                    disabled={saving || deleting}
+                >
+                  Cancelar
+                </Button>
+
+                <Button
+                    variant="secondary"
+                    onClick={submit}
+                    disabled={saving || deleting}
+                >
+                  {saving
+                      ? isEdit
+                          ? "Guardando..."
+                          : "Creando..."
+                      : isEdit
+                          ? "Guardar cambios"
+                          : "Crear atributo"}
+                </Button>
+              </div>
             </div>
           </Card>
         </div>

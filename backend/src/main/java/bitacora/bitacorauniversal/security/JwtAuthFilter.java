@@ -28,18 +28,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+
+        System.out.println("[JWT FILTER] " + method + " " + path);
+
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            System.out.println("[JWT FILTER] OPTIONS permitido");
             filterChain.doFilter(request, response);
             return;
         }
 
-        String path = request.getRequestURI();
         if (path.startsWith("/api/v1/auth/") || path.equals("/health")) {
+            System.out.println("[JWT FILTER] ruta publica");
             filterChain.doFilter(request, response);
             return;
         }
 
         String auth = request.getHeader("Authorization");
+        System.out.println("[JWT FILTER] Authorization header = " + auth);
+
         if (auth != null && auth.startsWith("Bearer ")) {
             String token = auth.substring(7);
             try {
@@ -47,9 +55,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 var authentication =
                         new UsernamePasswordAuthenticationToken(p, null, List.of());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (Exception ignored) {
+
+                System.out.println("[JWT FILTER] autenticado userId=" + p.userId() + " email=" + p.email());
+            } catch (Exception e) {
                 SecurityContextHolder.clearContext();
+                System.out.println("[JWT FILTER] token invalido: " + e.getMessage());
             }
+        } else {
+            System.out.println("[JWT FILTER] no hay bearer token");
         }
 
         filterChain.doFilter(request, response);

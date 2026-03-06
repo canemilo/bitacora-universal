@@ -47,7 +47,10 @@ public class TemplateService {
     }
 
     public TemplateDetailResponse getOneWithFields(UUID templateId) {
-        TemplateEntity t = repository.findByIdAndOwnerId(templateId, ownerId())
+        String owner = ownerId();
+        System.out.println("[TEMPLATE SERVICE] getOneWithFields templateId=" + templateId + " ownerId=" + owner);
+
+        TemplateEntity t = repository.findByIdAndOwnerId(templateId, owner)
                 .orElseThrow(() -> new ConflictException("Template no encontrado"));
 
         List<TemplateFieldEntity> fields = fieldRepository.findByTemplateIdOrderByOrderIndexAsc(templateId);
@@ -65,17 +68,17 @@ public class TemplateService {
                 .toList();
 
         return new TemplateDetailResponse(
-                t.getId(),
-                t.getName(),
-                t.getDescription(),
-                t.getCreatedAt(),
-                t.getUpdatedAt(),
+                t.getId(), t.getName(), t.getDescription(),
+                t.getCreatedAt(), t.getUpdatedAt(),
                 fieldResponses
         );
     }
 
     public List<TemplateResponse> list() {
-        return repository.findByOwnerIdOrderByCreatedAtDesc(ownerId())
+        String owner = ownerId();
+        System.out.println("[TEMPLATE SERVICE] list ownerId=" + owner);
+
+        return repository.findByOwnerIdOrderByCreatedAtDesc(owner)
                 .stream()
                 .map(t -> new TemplateResponse(t.getId(), t.getName(), t.getDescription(), t.getCreatedAt(), t.getUpdatedAt()))
                 .toList();

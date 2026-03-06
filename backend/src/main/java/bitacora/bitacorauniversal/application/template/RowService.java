@@ -206,12 +206,14 @@ public class RowService {
         rowRepository.delete(row);
     }
 
+
     private void validateType(TemplateFieldEntity field, Object value) {
         String type = field.getDataType();
         if (value == null) {
             if (field.isRequired()) throw new ConflictException("Campo obligatorio no puede ser null: " + field.getFieldKey());
             return;
         }
+
 
 
         switch (FieldType.valueOf(type)) {
